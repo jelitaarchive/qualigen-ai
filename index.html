@@ -1,0 +1,1957 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="QualiGen AI — Enterprise AI-powered Test Case Generator for QA Engineers, Developers, and Product Managers." />
+  <title>QualiGen AI | IBM AI Builders Challenge</title>
+
+  <style>
+    /* ============================================================
+       DESIGN TOKENS & CUSTOM PROPERTIES
+       ============================================================ */
+    :root {
+      /* Core palette — dark indigo developer theme */
+      --bg-base:        #0d0f1a;
+      --bg-surface:     #131629;
+      --bg-card:        #181c35;
+      --bg-card-hover:  #1e2340;
+      --bg-input:       #0f1222;
+      --border:         #252b4a;
+      --border-focus:   #5b6af8;
+
+      /* Accent & brand */
+      --indigo:         #5b6af8;
+      --indigo-light:   #818cf8;
+      --indigo-dim:     rgba(91,106,248,.15);
+      --violet:         #7c3aed;
+      --cyan:           #22d3ee;
+      --cyan-dim:       rgba(34,211,238,.12);
+      --green:          #10b981;
+      --green-dim:      rgba(16,185,129,.15);
+      --amber:          #f59e0b;
+      --amber-dim:      rgba(245,158,11,.15);
+      --rose:           #f43f5e;
+      --rose-dim:       rgba(244,63,94,.15);
+
+      /* Typography */
+      --text-primary:   #e8eaf6;
+      --text-secondary: #9095b8;
+      --text-muted:     #585e82;
+      --font-sans:      -apple-system, "Segoe UI", system-ui, "Inter", sans-serif;
+      --font-mono:      "Cascadia Code", "Fira Code", "JetBrains Mono", monospace;
+
+      /* Spacing & sizing */
+      --radius-sm:  6px;
+      --radius-md:  10px;
+      --radius-lg:  16px;
+      --radius-xl:  22px;
+      --shadow-card: 0 4px 32px rgba(0,0,0,.45);
+      --shadow-glow: 0 0 24px rgba(91,106,248,.18);
+      --transition:  0.2s ease;
+    }
+
+    /* ============================================================
+       RESET & BASE
+       ============================================================ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font-sans);
+      font-size: 14px;
+      line-height: 1.6;
+      background: var(--bg-base);
+      color: var(--text-primary);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg-base); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--indigo); }
+
+    /* ============================================================
+       LAYOUT WRAPPERS
+       ============================================================ */
+    .app-wrapper {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1360px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* ============================================================
+       TOPBAR / NAV
+       ============================================================ */
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(13,15,26,.88);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .topbar-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 60px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+
+    .brand-icon {
+      width: 36px; height: 36px;
+      background: linear-gradient(135deg, var(--indigo) 0%, var(--violet) 100%);
+      border-radius: var(--radius-sm);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+    }
+
+    .brand-name {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-primary);
+      letter-spacing: -.3px;
+    }
+
+    .brand-name span { color: var(--indigo-light); }
+
+    .topbar-badges {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 10px;
+      border-radius: 99px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .4px;
+      text-transform: uppercase;
+    }
+
+    .badge-ibm   { background: var(--indigo-dim); color: var(--indigo-light); border: 1px solid var(--indigo); }
+    .badge-live  { background: var(--green-dim);  color: var(--green);         border: 1px solid var(--green);  }
+
+    .badge-live::before {
+      content: '';
+      width: 6px; height: 6px;
+      background: var(--green);
+      border-radius: 50%;
+      animation: pulse 1.6s infinite;
+    }
+
+    @keyframes pulse {
+      0%,100% { opacity:1; transform:scale(1); }
+      50%      { opacity:.5; transform:scale(1.4); }
+    }
+
+    /* ============================================================
+       HERO / PAGE HEADER
+       ============================================================ */
+    .page-hero {
+      padding: 48px 0 32px;
+      text-align: center;
+      position: relative;
+    }
+
+    /* Subtle grid background */
+    .page-hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(91,106,248,.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(91,106,248,.04) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+    }
+
+    .hero-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 14px;
+      background: var(--indigo-dim);
+      border: 1px solid var(--indigo);
+      border-radius: 99px;
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--indigo-light);
+      letter-spacing: .5px;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+
+    .hero-title {
+      font-size: clamp(28px, 5vw, 46px);
+      font-weight: 800;
+      line-height: 1.15;
+      letter-spacing: -1px;
+      color: var(--text-primary);
+      margin-bottom: 14px;
+    }
+
+    .hero-title .gradient-text {
+      background: linear-gradient(90deg, var(--indigo-light), var(--cyan));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-sub {
+      max-width: 620px;
+      margin: 0 auto 0;
+      color: var(--text-secondary);
+      font-size: 15px;
+      line-height: 1.7;
+    }
+
+    /* ============================================================
+       ANALYTICS SUMMARY WIDGETS
+       ============================================================ */
+    .metrics-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin: 32px 0;
+    }
+
+    .metric-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 20px 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      transition: border-color var(--transition), box-shadow var(--transition);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .metric-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+    }
+
+    .metric-card.indigo::before  { background: var(--indigo); }
+    .metric-card.cyan::before    { background: var(--cyan); }
+    .metric-card.green::before   { background: var(--green); }
+    .metric-card.amber::before   { background: var(--amber); }
+    .metric-card.rose::before    { background: var(--rose); }
+
+    .metric-card:hover {
+      border-color: var(--indigo);
+      box-shadow: var(--shadow-glow);
+    }
+
+    .metric-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .6px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    .metric-value {
+      font-size: 32px;
+      font-weight: 800;
+      line-height: 1;
+      color: var(--text-primary);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .metric-value.indigo-val { color: var(--indigo-light); }
+    .metric-value.cyan-val   { color: var(--cyan); }
+    .metric-value.green-val  { color: var(--green); }
+    .metric-value.amber-val  { color: var(--amber); }
+    .metric-value.rose-val   { color: var(--rose); }
+
+    .metric-delta {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    /* ============================================================
+       MAIN CONTENT GRID
+       ============================================================ */
+    .main-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-bottom: 28px;
+    }
+
+    @media (max-width: 900px) {
+      .main-grid { grid-template-columns: 1fr; }
+    }
+
+    /* ============================================================
+       PANELS / CARDS
+       ============================================================ */
+    .panel {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      box-shadow: var(--shadow-card);
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      gap: 12px;
+    }
+
+    .panel-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .panel-icon {
+      width: 28px; height: 28px;
+      border-radius: var(--radius-sm);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px;
+    }
+
+    .panel-icon.indigo { background: var(--indigo-dim); }
+    .panel-icon.cyan   { background: var(--cyan-dim); }
+    .panel-icon.green  { background: var(--green-dim); }
+
+    .panel-body { padding: 20px; }
+
+    /* ============================================================
+       TEMPLATE QUICK-SELECT
+       ============================================================ */
+    .template-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .5px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+    }
+
+    .template-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .chip {
+      padding: 5px 12px;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: 99px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all var(--transition);
+      white-space: nowrap;
+    }
+
+    .chip:hover, .chip.active {
+      border-color: var(--indigo);
+      background: var(--indigo-dim);
+      color: var(--indigo-light);
+    }
+
+    /* ============================================================
+       TEXTAREA EDITOR
+       ============================================================ */
+    .editor-wrap {
+      position: relative;
+    }
+
+    .editor-textarea {
+      width: 100%;
+      min-height: 230px;
+      padding: 14px 16px;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      font-size: 13.5px;
+      line-height: 1.7;
+      resize: vertical;
+      outline: none;
+      transition: border-color var(--transition), box-shadow var(--transition);
+    }
+
+    .editor-textarea:focus {
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 3px var(--indigo-dim);
+    }
+
+    .editor-textarea::placeholder { color: var(--text-muted); }
+
+    .char-count {
+      position: absolute;
+      bottom: 10px;
+      right: 12px;
+      font-size: 11px;
+      color: var(--text-muted);
+      pointer-events: none;
+    }
+
+    /* ============================================================
+       GENERATE BUTTON
+       ============================================================ */
+    .btn-generate {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
+      padding: 14px 24px;
+      margin-top: 14px;
+      background: linear-gradient(135deg, var(--indigo) 0%, var(--violet) 100%);
+      border: none;
+      border-radius: var(--radius-md);
+      color: #fff;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: .3px;
+      cursor: pointer;
+      transition: opacity var(--transition), transform var(--transition), box-shadow var(--transition);
+      box-shadow: 0 4px 20px rgba(91,106,248,.35);
+    }
+
+    .btn-generate:hover:not(:disabled) {
+      opacity: .9;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 28px rgba(91,106,248,.5);
+    }
+
+    .btn-generate:active:not(:disabled) { transform: translateY(0); }
+
+    .btn-generate:disabled {
+      opacity: .5;
+      cursor: not-allowed;
+    }
+
+    /* ============================================================
+       AI PROCESSING STATUS
+       ============================================================ */
+    .ai-status-box {
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      background: var(--bg-input);
+      padding: 18px 20px;
+      display: none;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .ai-status-box.visible { display: flex; }
+
+    .status-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--indigo-light);
+    }
+
+    .spinner {
+      width: 16px; height: 16px;
+      border: 2px solid var(--indigo-dim);
+      border-top-color: var(--indigo-light);
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      flex-shrink: 0;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .status-steps {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .step-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 12.5px;
+      color: var(--text-muted);
+      transition: color var(--transition);
+    }
+
+    .step-item.active  { color: var(--indigo-light); }
+    .step-item.done    { color: var(--green); }
+
+    .step-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--border);
+      flex-shrink: 0;
+      transition: background var(--transition);
+    }
+
+    .step-item.active .step-dot { background: var(--indigo-light); animation: pulse 1s infinite; }
+    .step-item.done  .step-dot  { background: var(--green); }
+
+    .progress-bar-wrap {
+      background: var(--border);
+      border-radius: 99px;
+      height: 4px;
+      overflow: hidden;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--indigo), var(--cyan));
+      border-radius: 99px;
+      width: 0%;
+      transition: width .4s ease;
+    }
+
+    /* ============================================================
+       GHERKIN OUTPUT
+       ============================================================ */
+    .gherkin-box {
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      line-height: 1.8;
+      color: var(--text-secondary);
+      white-space: pre-wrap;
+      max-height: 320px;
+      overflow-y: auto;
+      display: none;
+    }
+
+    .gherkin-box.visible { display: block; }
+
+    .gherkin-keyword { color: var(--indigo-light); font-weight: 600; }
+    .gherkin-step    { color: var(--cyan); }
+    .gherkin-tag     { color: var(--amber); }
+    .gherkin-comment { color: var(--text-muted); font-style: italic; }
+
+    .gherkin-placeholder {
+      color: var(--text-muted);
+      font-family: var(--font-sans);
+      font-style: italic;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100px;
+    }
+
+    /* ============================================================
+       EXPORT ACTION BUTTONS
+       ============================================================ */
+    .export-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .btn-action {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 9px 16px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: var(--bg-input);
+      color: var(--text-secondary);
+      font-size: 12.5px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition);
+      white-space: nowrap;
+    }
+
+    .btn-action:hover:not(:disabled) {
+      border-color: var(--indigo);
+      background: var(--indigo-dim);
+      color: var(--indigo-light);
+      transform: translateY(-1px);
+    }
+
+    .btn-action:disabled { opacity: .4; cursor: not-allowed; }
+
+    .btn-action.csv:hover:not(:disabled)      { border-color:var(--green);  background:var(--green-dim);  color:var(--green);  }
+    .btn-action.gherkin:hover:not(:disabled)  { border-color:var(--cyan);   background:var(--cyan-dim);   color:var(--cyan);   }
+    .btn-action.pdf:hover:not(:disabled)      { border-color:var(--amber);  background:var(--amber-dim);  color:var(--amber);  }
+    .btn-action.clear:hover:not(:disabled)    { border-color:var(--rose);   background:var(--rose-dim);   color:var(--rose);   }
+
+    /* ============================================================
+       TEST CASE OUTPUT TABLE
+       ============================================================ */
+    .output-section { margin-bottom: 28px; }
+
+    .table-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .filter-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .filter-select, .search-input {
+      padding: 7px 12px;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text-primary);
+      font-size: 12.5px;
+      outline: none;
+      transition: border-color var(--transition);
+    }
+
+    .filter-select:focus, .search-input:focus {
+      border-color: var(--border-focus);
+    }
+
+    .search-input { min-width: 200px; }
+
+    .table-wrap {
+      overflow-x: auto;
+      min-height: 160px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    thead th {
+      background: var(--bg-surface);
+      padding: 11px 14px;
+      text-align: left;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .6px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      white-space: nowrap;
+      cursor: pointer;
+      user-select: none;
+      border-bottom: 1px solid var(--border);
+      transition: color var(--transition);
+    }
+
+    thead th:hover { color: var(--indigo-light); }
+
+    thead th .sort-icon {
+      display: inline-block;
+      margin-left: 4px;
+      opacity: .4;
+      font-style: normal;
+    }
+
+    thead th.sort-asc  .sort-icon,
+    thead th.sort-desc .sort-icon { opacity: 1; color: var(--indigo-light); }
+
+    tbody tr {
+      border-bottom: 1px solid var(--border);
+      transition: background var(--transition);
+    }
+
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: var(--bg-card-hover); }
+
+    tbody td {
+      padding: 12px 14px;
+      font-size: 13px;
+      color: var(--text-primary);
+      vertical-align: top;
+    }
+
+    .td-id {
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+
+    .td-scenario { font-weight: 600; }
+
+    .td-desc {
+      color: var(--text-secondary);
+      max-width: 280px;
+      font-size: 12.5px;
+    }
+
+    /* Priority badges */
+    .prio-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 9px;
+      border-radius: 99px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .4px;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .prio-high   { background: var(--rose-dim);  color: var(--rose);  border: 1px solid var(--rose); }
+    .prio-medium { background: var(--amber-dim); color: var(--amber); border: 1px solid var(--amber); }
+    .prio-low    { background: var(--green-dim); color: var(--green); border: 1px solid var(--green); }
+
+    /* Type badges */
+    .type-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 9px;
+      border-radius: var(--radius-sm);
+      font-size: 11px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .type-functional { background: var(--indigo-dim); color: var(--indigo-light); }
+    .type-negative   { background: var(--rose-dim);   color: var(--rose); }
+    .type-boundary   { background: var(--cyan-dim);   color: var(--cyan); }
+
+    /* Status badges */
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 2px 9px;
+      border-radius: var(--radius-sm);
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .status-ready   { background: var(--green-dim); color: var(--green); }
+    .status-review  { background: var(--amber-dim); color: var(--amber); }
+    .status-draft   { background: rgba(255,255,255,.06); color: var(--text-muted); }
+
+    /* Empty state */
+    .table-empty {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      padding: 60px 20px;
+      color: var(--text-muted);
+      text-align: center;
+    }
+
+    .table-empty-icon { font-size: 42px; opacity: .4; }
+    .table-empty p { font-size: 14px; max-width: 320px; line-height: 1.6; }
+
+    /* ============================================================
+       TOAST NOTIFICATIONS
+       ============================================================ */
+    #toast-container {
+      position: fixed;
+      bottom: 28px;
+      right: 28px;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      pointer-events: none;
+    }
+
+    .toast {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 18px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-card);
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-primary);
+      pointer-events: all;
+      animation: toastIn .3s ease;
+      max-width: 340px;
+    }
+
+    @keyframes toastIn {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .toast.success { border-color: var(--green);  }
+    .toast.info    { border-color: var(--indigo); }
+    .toast.warning { border-color: var(--amber);  }
+
+    .toast-icon { font-size: 16px; flex-shrink: 0; }
+
+    /* ============================================================
+       FOOTER
+       ============================================================ */
+    .app-footer {
+      margin-top: auto;
+      padding: 20px 0;
+      border-top: 1px solid var(--border);
+      text-align: center;
+    }
+
+    .footer-text {
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.8;
+    }
+
+    .footer-text a {
+      color: var(--indigo-light);
+      text-decoration: none;
+    }
+
+    /* ============================================================
+       RESPONSIVE
+       ============================================================ */
+    @media (max-width: 640px) {
+      .topbar-badges { display: none; }
+      .metrics-row   { grid-template-columns: 1fr 1fr; }
+      .export-row    { flex-direction: column; }
+      .table-toolbar { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+
+<body>
+<div class="app-wrapper">
+
+  <!-- ============================================================
+       TOP NAV
+       ============================================================ -->
+  <header class="topbar" role="banner">
+    <div class="container topbar-inner">
+      <a class="brand" href="#" aria-label="QualiGen AI Home">
+        <div class="brand-icon" aria-hidden="true">⚗️</div>
+        <span class="brand-name">Quali<span>Gen</span> AI</span>
+      </a>
+      <div class="topbar-badges">
+        <span class="badge badge-ibm" aria-label="IBM AI Builders Challenge">🏆 IBM AI Builders</span>
+        <span class="badge badge-live" aria-label="Application live">Live</span>
+      </div>
+    </div>
+  </header>
+
+  <main role="main">
+    <!-- ============================================================
+         HERO HEADER
+         ============================================================ -->
+    <section class="page-hero" aria-label="Application overview">
+      <div class="container">
+        <div class="hero-pill" aria-hidden="true">⚡ AI-Powered QA Automation</div>
+        <h1 class="hero-title">
+          Generate <span class="gradient-text">Comprehensive Test Cases</span><br>
+          from Requirements Instantly
+        </h1>
+        <p class="hero-sub">
+          Paste a User Story or SRS specification and let QualiGen AI produce a full structured
+          test matrix — functional, negative, boundary, and Gherkin scripts — in seconds.
+        </p>
+      </div>
+    </section>
+
+    <div class="container">
+
+      <!-- ============================================================
+           ANALYTICS METRICS ROW
+           ============================================================ -->
+      <section aria-label="Analytics summary">
+        <div class="metrics-row" id="metrics-row">
+          <div class="metric-card indigo" role="region" aria-label="Total test cases">
+            <div class="metric-label">Total Test Cases</div>
+            <div class="metric-value indigo-val" id="m-total">0</div>
+            <div class="metric-delta" id="m-total-delta">Generate to populate</div>
+          </div>
+          <div class="metric-card cyan" role="region" aria-label="Coverage estimate">
+            <div class="metric-label">Coverage Estimate</div>
+            <div class="metric-value cyan-val" id="m-coverage">0%</div>
+            <div class="metric-delta" id="m-coverage-delta">Requirement coverage</div>
+          </div>
+          <div class="metric-card green" role="region" aria-label="Positive test cases">
+            <div class="metric-label">Positive Cases</div>
+            <div class="metric-value green-val" id="m-positive">0</div>
+            <div class="metric-delta">Functional / Happy-path</div>
+          </div>
+          <div class="metric-card rose" role="region" aria-label="Negative test cases">
+            <div class="metric-label">Negative Cases</div>
+            <div class="metric-value rose-val" id="m-negative">0</div>
+            <div class="metric-delta">Edge / Error-path</div>
+          </div>
+          <div class="metric-card amber" role="region" aria-label="Boundary test cases">
+            <div class="metric-label">Boundary Cases</div>
+            <div class="metric-value amber-val" id="m-boundary">0</div>
+            <div class="metric-delta">Value limits & thresholds</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================
+           MAIN GRID: Input + Output side by side
+           ============================================================ -->
+      <div class="main-grid">
+
+        <!-- LEFT: Input Workspace -->
+        <section aria-label="Requirements input workspace">
+          <div class="panel">
+            <div class="panel-header">
+              <div class="panel-title">
+                <div class="panel-icon indigo" aria-hidden="true">📝</div>
+                Requirements Workspace
+              </div>
+            </div>
+            <div class="panel-body">
+
+              <!-- Template Quick-Select -->
+              <div class="template-label">Quick Templates</div>
+              <div class="template-chips" role="list" aria-label="Quick template selectors">
+                <button class="chip" role="listitem" data-template="ecommerce"       aria-label="E-Commerce Checkout template">🛒 E-Commerce Checkout</button>
+                <button class="chip" role="listitem" data-template="banking"         aria-label="Banking Login template">🏦 Banking Login</button>
+                <button class="chip" role="listitem" data-template="inventory"       aria-label="Inventory API template">📦 Inventory API</button>
+                <button class="chip" role="listitem" data-template="user-reg"        aria-label="User Registration template">👤 User Registration</button>
+                <button class="chip" role="listitem" data-template="payment-gateway" aria-label="Payment Gateway template">💳 Payment Gateway</button>
+              </div>
+
+              <!-- Requirement Editor -->
+              <div class="editor-wrap">
+                <label for="req-input" class="sr-only">Paste your User Story or SRS here</label>
+                <textarea
+                  id="req-input"
+                  class="editor-textarea"
+                  placeholder="Paste your User Story, Acceptance Criteria, or Feature Description here…
+
+Example:
+  As a registered user, I want to log in with my email and password
+  so that I can access my dashboard securely.
+
+  Acceptance Criteria:
+  - Valid email and password should grant access
+  - Invalid credentials should show error
+  - Account locks after 3 failed attempts"
+                  aria-required="true"
+                  aria-describedby="char-hint"
+                  spellcheck="false"
+                ></textarea>
+                <span class="char-count" id="char-hint" aria-live="polite">0 chars</span>
+              </div>
+
+              <!-- AI Processing Status -->
+              <div class="ai-status-box" id="ai-status-box" role="status" aria-live="polite" aria-label="AI generation progress">
+                <div class="status-title">
+                  <div class="spinner" aria-hidden="true"></div>
+                  Analyzing Requirements…
+                </div>
+                <div class="status-steps" id="status-steps">
+                  <div class="step-item" data-step="0"><div class="step-dot"></div> Parsing requirement structure</div>
+                  <div class="step-item" data-step="1"><div class="step-dot"></div> Identifying boundary values</div>
+                  <div class="step-item" data-step="2"><div class="step-dot"></div> Generating equivalence partitions</div>
+                  <div class="step-item" data-step="3"><div class="step-dot"></div> Composing test scenarios</div>
+                  <div class="step-item" data-step="4"><div class="step-dot"></div> Formatting test steps &amp; Gherkin</div>
+                  <div class="step-item" data-step="5"><div class="step-dot"></div> Finalising test matrix</div>
+                </div>
+                <div class="progress-bar-wrap" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="progress-bar-wrap">
+                  <div class="progress-bar-fill" id="progress-bar-fill"></div>
+                </div>
+              </div>
+
+              <!-- Generate Button -->
+              <button
+                class="btn-generate"
+                id="btn-generate"
+                aria-label="Generate test cases from requirements"
+                type="button"
+              >
+                <span aria-hidden="true">⚡</span>
+                Generate Test Cases with AI
+              </button>
+
+            </div>
+          </div>
+        </section>
+
+        <!-- RIGHT: Gherkin + Export -->
+        <section aria-label="Gherkin output and export actions">
+          <div class="panel" style="height:100%; display:flex; flex-direction:column;">
+            <div class="panel-header">
+              <div class="panel-title">
+                <div class="panel-icon cyan" aria-hidden="true">🥒</div>
+                Gherkin / BDD Script Output
+              </div>
+            </div>
+            <div class="panel-body" style="flex:1; display:flex; flex-direction:column; gap:16px;">
+
+              <!-- Gherkin display -->
+              <div id="gherkin-output" class="gherkin-box" aria-label="Generated Gherkin scripts" aria-live="polite"></div>
+              <div id="gherkin-placeholder" class="gherkin-box visible" style="font-family:var(--font-sans); font-style:italic; color:var(--text-muted); min-height:120px; display:flex; align-items:center; justify-content:center;">
+                Gherkin (Given-When-Then) scripts will appear here after generation…
+              </div>
+
+              <!-- Export Hub -->
+              <div class="panel" style="background:var(--bg-surface);">
+                <div class="panel-header" style="padding:12px 16px;">
+                  <div class="panel-title" style="font-size:13px;">
+                    <div class="panel-icon green" aria-hidden="true">📤</div>
+                    Export &amp; Integration Hub
+                  </div>
+                </div>
+                <div class="panel-body" style="padding:14px 16px;">
+                  <div class="export-row">
+                    <button class="btn-action csv"     id="btn-csv"     disabled type="button" aria-label="Export test cases to CSV">📊 Export CSV</button>
+                    <button class="btn-action gherkin" id="btn-gherkin" disabled type="button" aria-label="Copy Gherkin Cucumber syntax">🥒 Copy Gherkin</button>
+                    <button class="btn-action pdf"     id="btn-pdf"     disabled type="button" aria-label="Download PDF report">📄 PDF Report</button>
+                    <button class="btn-action clear"   id="btn-clear"   disabled type="button" aria-label="Clear all generated output">🗑 Clear All</button>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </section>
+
+      </div><!-- /main-grid -->
+
+      <!-- ============================================================
+           OUTPUT TABLE SECTION
+           ============================================================ -->
+      <section class="output-section" aria-label="Generated test case matrix">
+        <div class="panel">
+          <div class="table-toolbar">
+            <div class="panel-title">
+              <div class="panel-icon indigo" aria-hidden="true">🧪</div>
+              Test Case Matrix
+              <span id="tc-count-badge" style="background:var(--indigo-dim);color:var(--indigo-light);border:1px solid var(--indigo);padding:1px 9px;border-radius:99px;font-size:11px;font-weight:700;margin-left:4px;">0 cases</span>
+            </div>
+            <div class="filter-row">
+              <input
+                type="search"
+                class="search-input"
+                id="search-input"
+                placeholder="🔍  Search test cases…"
+                aria-label="Search test cases"
+                disabled
+              />
+              <select class="filter-select" id="filter-priority" aria-label="Filter by priority" disabled>
+                <option value="">All Priorities</option>
+                <option value="High">High</option>
+                <option value="Medium">Medium</option>
+                <option value="Low">Low</option>
+              </select>
+              <select class="filter-select" id="filter-type" aria-label="Filter by type" disabled>
+                <option value="">All Types</option>
+                <option value="Functional">Functional</option>
+                <option value="Negative">Negative</option>
+                <option value="Boundary">Boundary</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="table-wrap" role="region" aria-label="Test case data table">
+            <table id="test-table" aria-label="Generated test cases">
+              <thead>
+                <tr>
+                  <th data-col="id"       tabindex="0" aria-sort="none">Test ID     <i class="sort-icon" aria-hidden="true">⇅</i></th>
+                  <th data-col="scenario" tabindex="0" aria-sort="none">Scenario    <i class="sort-icon" aria-hidden="true">⇅</i></th>
+                  <th data-col="desc"     tabindex="0" aria-sort="none">Description <i class="sort-icon" aria-hidden="true">⇅</i></th>
+                  <th data-col="priority" tabindex="0" aria-sort="none">Priority    <i class="sort-icon" aria-hidden="true">⇅</i></th>
+                  <th data-col="type"     tabindex="0" aria-sort="none">Type        <i class="sort-icon" aria-hidden="true">⇅</i></th>
+                  <th data-col="expected" tabindex="0" aria-sort="none">Expected Result <i class="sort-icon" aria-hidden="true">⇅</i></th>
+                  <th data-col="status"   tabindex="0" aria-sort="none">Status      <i class="sort-icon" aria-hidden="true">⇅</i></th>
+                </tr>
+              </thead>
+              <tbody id="test-tbody">
+                <!-- Empty state -->
+                <tr id="empty-row">
+                  <td colspan="7">
+                    <div class="table-empty" role="status">
+                      <div class="table-empty-icon" aria-hidden="true">🧪</div>
+                      <p>No test cases generated yet. Paste a requirement and click <strong>Generate Test Cases with AI</strong> to begin.</p>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+        </div>
+      </section>
+
+    </div><!-- /container -->
+  </main>
+
+  <!-- Toast container -->
+  <div id="toast-container" aria-live="assertive" aria-atomic="true" role="alert"></div>
+
+  <!-- Footer -->
+  <footer class="app-footer" role="contentinfo">
+    <div class="container">
+      <p class="footer-text">
+        <strong>QualiGen AI</strong> &mdash; IBM AI Builders Challenge 2025
+        &nbsp;|&nbsp; Built with ❤️ using Vanilla HTML5, CSS3 &amp; ES6+
+      </p>
+    </div>
+  </footer>
+
+</div><!-- /app-wrapper -->
+
+<!-- Screen-reader only utility class (applied via JS inline style) -->
+<style>.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}</style>
+
+<!-- ============================================================
+     APPLICATION JAVASCRIPT
+     ============================================================ -->
+<script>
+'use strict';
+
+/* ----------------------------------------------------------------
+   TEMPLATE DATA
+   ---------------------------------------------------------------- */
+const TEMPLATES = {
+  'ecommerce': `As a registered customer, I want to complete a checkout process
+so that I can purchase items in my cart securely.
+
+Acceptance Criteria:
+- Cart must contain at least 1 item
+- User must be logged in
+- Payment must be validated (Visa, MasterCard, Amex)
+- Order confirmation email sent after success
+- Promo code reduces price if valid
+- Out-of-stock items block checkout
+- Minimum order value: $5.00, Maximum: $10,000`,
+
+  'banking': `As a bank account holder, I want to log in to my online banking portal
+so that I can manage my finances securely.
+
+Acceptance Criteria:
+- Valid 8-16 character password with at least 1 number and 1 special character
+- Username must be a registered email
+- Account locks after 3 consecutive failed attempts
+- OTP sent to registered mobile for 2FA
+- Session expires after 15 minutes of inactivity
+- Password reset available via email link`,
+
+  'inventory': `As a warehouse manager, I want to interact with the Inventory REST API
+so that I can track, update, and report on stock levels.
+
+Acceptance Criteria:
+- GET /items returns all items in JSON format
+- POST /items creates item with name, SKU, quantity (min 0, max 999999)
+- PUT /items/:id updates quantity, 404 if not found
+- DELETE /items/:id removes item, 401 if unauthorized
+- SKU must be unique alphanumeric (6-12 chars)
+- API rate-limited to 100 req/min per token`,
+
+  'user-reg': `As a new visitor, I want to register for an account
+so that I can access personalized features.
+
+Acceptance Criteria:
+- First and last name: 2-50 characters each
+- Email must be valid format and not already registered
+- Password: min 8 chars, 1 uppercase, 1 number, 1 special character
+- Confirm password must match
+- Date of birth: user must be 18 or older
+- CAPTCHA must be completed
+- Welcome email sent on successful registration`,
+
+  'payment-gateway': `As an online merchant, I want to process payments through the Payment Gateway API
+so that customers can complete transactions.
+
+Acceptance Criteria:
+- Accepts credit/debit cards (Visa, MC, Amex, Discover)
+- Card number must pass Luhn algorithm validation
+- CVV: 3 digits (4 for Amex)
+- Expiry date must not be in the past
+- Transactions above $5000 require additional verification
+- Declined transactions return appropriate error codes (insufficient funds, expired card)
+- PCI-DSS compliance enforced; card data never stored in plain text`
+};
+
+/* ----------------------------------------------------------------
+   TEST CASE GENERATION ENGINE
+   Each template produces a rich set of test cases covering
+   Functional, Negative, and Boundary scenarios.
+   ---------------------------------------------------------------- */
+const TEST_CASE_SETS = {
+  'ecommerce': [
+    { scenario: 'Successful Checkout',         desc: 'Complete purchase with valid cart items, logged-in user, and valid card',       priority: 'High',   type: 'Functional', expected: 'Order confirmed, confirmation email sent, cart cleared', status: 'Ready' },
+    { scenario: 'Promo Code Applied',           desc: 'Apply a valid promo code during checkout',                                      priority: 'High',   type: 'Functional', expected: 'Discount applied to total; updated price displayed',     status: 'Ready' },
+    { scenario: 'Invalid Promo Code',           desc: 'Apply an expired or non-existent promo code',                                   priority: 'Medium', type: 'Negative',   expected: 'Error message: "Promo code is invalid or expired"',      status: 'Ready' },
+    { scenario: 'Empty Cart Checkout',          desc: 'Attempt checkout with zero items in cart',                                      priority: 'High',   type: 'Negative',   expected: 'Checkout blocked; message: "Your cart is empty"',         status: 'Ready' },
+    { scenario: 'Minimum Order Value',          desc: 'Place order exactly at $5.00 boundary',                                        priority: 'Medium', type: 'Boundary',   expected: 'Order proceeds successfully',                             status: 'Ready' },
+    { scenario: 'Below Minimum Order',          desc: 'Place order at $4.99 (below minimum)',                                         priority: 'High',   type: 'Boundary',   expected: 'Error: "Minimum order value is $5.00"',                   status: 'Ready' },
+    { scenario: 'Maximum Order Value',          desc: 'Place order at exactly $10,000',                                               priority: 'Medium', type: 'Boundary',   expected: 'Order proceeds successfully',                             status: 'Ready' },
+    { scenario: 'Exceeds Maximum Order',        desc: 'Place order at $10,001',                                                       priority: 'High',   type: 'Boundary',   expected: 'Error: "Order exceeds maximum allowed value"',            status: 'Ready' },
+    { scenario: 'Out-of-Stock Item',            desc: 'Attempt checkout with an out-of-stock item in cart',                           priority: 'High',   type: 'Negative',   expected: 'Checkout blocked; item flagged as unavailable',           status: 'Ready' },
+    { scenario: 'Invalid Payment Method',       desc: 'Submit checkout with an unsupported payment method',                           priority: 'Medium', type: 'Negative',   expected: 'Payment rejected; supported methods listed',              status: 'Review'},
+    { scenario: 'Unauthenticated Checkout',     desc: 'Attempt checkout while not logged in',                                        priority: 'High',   type: 'Negative',   expected: 'Redirected to login page',                               status: 'Ready' },
+    { scenario: 'Network Failure During Pay',   desc: 'Simulate network drop after payment initiation',                               priority: 'Medium', type: 'Negative',   expected: 'Transaction rolled back; user notified; no duplicate charge',status:'Review'},
+    { scenario: 'Multi-Item Quantity Update',   desc: 'Update quantity of item and re-verify checkout total',                         priority: 'Low',    type: 'Functional', expected: 'Total recalculated correctly',                            status: 'Ready' },
+    { scenario: 'Visa Card Accepted',           desc: 'Complete payment using Visa card',                                            priority: 'High',   type: 'Functional', expected: 'Transaction approved',                                   status: 'Ready' },
+    { scenario: 'Amex Card Accepted',           desc: 'Complete payment using American Express card',                                 priority: 'Medium', type: 'Functional', expected: 'Transaction approved',                                   status: 'Ready' },
+  ],
+  'banking': [
+    { scenario: 'Valid Login',                  desc: 'Login with correct email and password',                                        priority: 'High',   type: 'Functional', expected: 'Dashboard accessed; session started',                    status: 'Ready' },
+    { scenario: 'Invalid Password',             desc: 'Login with correct email but wrong password',                                  priority: 'High',   type: 'Negative',   expected: 'Error: "Invalid credentials"; attempt counter incremented', status: 'Ready' },
+    { scenario: 'Account Lock After 3 Fails',   desc: 'Three consecutive failed login attempts',                                      priority: 'High',   type: 'Boundary',   expected: 'Account locked; unlock instructions emailed',            status: 'Ready' },
+    { scenario: '2FA OTP Validation',           desc: 'Enter correct OTP received on registered mobile',                             priority: 'High',   type: 'Functional', expected: 'Authentication complete; dashboard loaded',               status: 'Ready' },
+    { scenario: 'Invalid OTP',                  desc: 'Enter wrong OTP during 2FA',                                                   priority: 'High',   type: 'Negative',   expected: 'Error: "Invalid OTP"; re-entry allowed up to 3 times',   status: 'Ready' },
+    { scenario: 'Session Expiry',               desc: 'User inactive for 15 minutes',                                                 priority: 'Medium', type: 'Boundary',   expected: 'Auto logout; redirect to login with timeout message',     status: 'Ready' },
+    { scenario: 'Password Min Length Boundary', desc: 'Register with exactly 8-character password',                                   priority: 'Medium', type: 'Boundary',   expected: 'Password accepted',                                      status: 'Ready' },
+    { scenario: 'Password Below Min Length',    desc: 'Register with 7-character password',                                          priority: 'High',   type: 'Boundary',   expected: 'Error: "Password must be at least 8 characters"',         status: 'Ready' },
+    { scenario: 'Password Max Length Boundary', desc: 'Register with exactly 16-character password',                                  priority: 'Low',    type: 'Boundary',   expected: 'Password accepted',                                      status: 'Ready' },
+    { scenario: 'Unregistered Email',           desc: 'Login attempt with email not in system',                                       priority: 'High',   type: 'Negative',   expected: 'Error: "Account not found"',                             status: 'Ready' },
+    { scenario: 'Password Reset Flow',          desc: 'Request password reset via email link',                                        priority: 'High',   type: 'Functional', expected: 'Reset email sent; link expires in 30 minutes',           status: 'Ready' },
+    { scenario: 'SQL Injection in Login',       desc: 'Input SQL injection string in email field',                                   priority: 'High',   type: 'Negative',   expected: 'Input sanitized; login rejected; no DB error exposed',    status: 'Review'},
+    { scenario: 'Missing Password Field',       desc: 'Submit login form with empty password',                                        priority: 'Medium', type: 'Negative',   expected: 'Inline validation: "Password is required"',               status: 'Ready' },
+    { scenario: 'Missing Email Field',          desc: 'Submit login form with empty email',                                           priority: 'Medium', type: 'Negative',   expected: 'Inline validation: "Email is required"',                  status: 'Ready' },
+    { scenario: 'Second-Before Session Expiry', desc: 'User performs action at 14m 59s inactivity',                                   priority: 'Low',    type: 'Boundary',   expected: 'Session remains active; action completes normally',       status: 'Draft' },
+  ],
+  'inventory': [
+    { scenario: 'GET All Items — 200 OK',       desc: 'Fetch all inventory items with valid token',                                   priority: 'High',   type: 'Functional', expected: 'HTTP 200; JSON array of all items returned',             status: 'Ready' },
+    { scenario: 'POST New Item — 201 Created',  desc: 'Create new item with valid name, SKU, quantity',                               priority: 'High',   type: 'Functional', expected: 'HTTP 201; new item in response body; ID assigned',       status: 'Ready' },
+    { scenario: 'POST Duplicate SKU',           desc: 'Attempt to create item with existing SKU',                                     priority: 'High',   type: 'Negative',   expected: 'HTTP 409 Conflict; error: "SKU already exists"',         status: 'Ready' },
+    { scenario: 'PUT Update Quantity',          desc: 'Update existing item quantity to 500',                                         priority: 'High',   type: 'Functional', expected: 'HTTP 200; item updated with new quantity',               status: 'Ready' },
+    { scenario: 'PUT Non-Existent Item',        desc: 'Update item with ID that does not exist',                                      priority: 'High',   type: 'Negative',   expected: 'HTTP 404 Not Found',                                     status: 'Ready' },
+    { scenario: 'DELETE Item — 200 OK',         desc: 'Delete existing item with admin token',                                        priority: 'High',   type: 'Functional', expected: 'HTTP 200; item removed from inventory',                  status: 'Ready' },
+    { scenario: 'DELETE Without Auth',          desc: 'Delete request with no or invalid token',                                      priority: 'High',   type: 'Negative',   expected: 'HTTP 401 Unauthorized',                                  status: 'Ready' },
+    { scenario: 'SKU Min Length Boundary',      desc: 'POST item with 6-character SKU',                                               priority: 'Medium', type: 'Boundary',   expected: 'Item created successfully',                              status: 'Ready' },
+    { scenario: 'SKU Max Length Boundary',      desc: 'POST item with 12-character SKU',                                              priority: 'Medium', type: 'Boundary',   expected: 'Item created successfully',                              status: 'Ready' },
+    { scenario: 'SKU Below Min Length',         desc: 'POST item with 5-character SKU',                                               priority: 'High',   type: 'Boundary',   expected: 'HTTP 400; error: "SKU must be 6–12 alphanumeric chars"',  status: 'Ready' },
+    { scenario: 'Quantity Zero Boundary',       desc: 'POST item with quantity exactly 0',                                            priority: 'Medium', type: 'Boundary',   expected: 'Item created with quantity 0',                           status: 'Ready' },
+    { scenario: 'Quantity Max Boundary',        desc: 'POST item with quantity 999999',                                               priority: 'Medium', type: 'Boundary',   expected: 'Item created successfully',                              status: 'Ready' },
+    { scenario: 'Quantity Exceeds Max',         desc: 'POST item with quantity 1000000',                                              priority: 'High',   type: 'Boundary',   expected: 'HTTP 400; error: "Quantity exceeds maximum"',             status: 'Ready' },
+    { scenario: 'Rate Limit Exceeded',          desc: '101 API calls within 1 minute from same token',                                priority: 'Medium', type: 'Negative',   expected: 'HTTP 429 Too Many Requests; Retry-After header present',  status: 'Review'},
+    { scenario: 'GET Without Token',            desc: 'Fetch items with no Authorization header',                                     priority: 'High',   type: 'Negative',   expected: 'HTTP 401 Unauthorized',                                  status: 'Ready' },
+  ],
+  'user-reg': [
+    { scenario: 'Successful Registration',      desc: 'Register with all valid fields',                                               priority: 'High',   type: 'Functional', expected: 'Account created; welcome email sent; redirected to login',status: 'Ready' },
+    { scenario: 'Duplicate Email',              desc: 'Register with an already-registered email',                                    priority: 'High',   type: 'Negative',   expected: 'Error: "Email already in use"',                           status: 'Ready' },
+    { scenario: 'Invalid Email Format',         desc: 'Enter email without @ symbol',                                                 priority: 'High',   type: 'Negative',   expected: 'Inline validation: "Enter a valid email address"',        status: 'Ready' },
+    { scenario: 'Password Mismatch',            desc: 'Confirm password does not match password',                                     priority: 'High',   type: 'Negative',   expected: 'Error: "Passwords do not match"',                         status: 'Ready' },
+    { scenario: 'Minimum Age Boundary (18)',    desc: 'User born exactly 18 years ago (today)',                                       priority: 'High',   type: 'Boundary',   expected: 'Registration accepted',                                  status: 'Ready' },
+    { scenario: 'Below Minimum Age (17)',       desc: 'User born 17 years and 364 days ago',                                          priority: 'High',   type: 'Boundary',   expected: 'Error: "You must be at least 18 to register"',           status: 'Ready' },
+    { scenario: 'First Name Min Length',        desc: 'First name exactly 2 characters',                                             priority: 'Medium', type: 'Boundary',   expected: 'Field accepted',                                         status: 'Ready' },
+    { scenario: 'First Name Too Short',         desc: 'First name 1 character',                                                       priority: 'Medium', type: 'Boundary',   expected: 'Error: "Name must be at least 2 characters"',             status: 'Ready' },
+    { scenario: 'First Name Max Length',        desc: 'First name exactly 50 characters',                                            priority: 'Low',    type: 'Boundary',   expected: 'Field accepted',                                         status: 'Ready' },
+    { scenario: 'Missing CAPTCHA',              desc: 'Submit registration without completing CAPTCHA',                               priority: 'High',   type: 'Negative',   expected: 'Error: "Please complete the CAPTCHA"',                    status: 'Ready' },
+    { scenario: 'Weak Password',               desc: 'Register with password "password123" (no special char)',                        priority: 'High',   type: 'Negative',   expected: 'Error: "Password must include a special character"',      status: 'Ready' },
+    { scenario: 'XSS in Name Field',           desc: 'Enter \x3cscript\x3ealert(1)\x3c/script\x3e in first name',                   priority: 'High',   type: 'Negative',   expected: 'Input sanitized; script tag stripped',                   status: 'Review'},
+    { scenario: 'All Fields Empty Submit',     desc: 'Submit form with all fields blank',                                            priority: 'Medium', type: 'Negative',   expected: 'All required fields show inline validation errors',       status: 'Ready' },
+    { scenario: 'Last Name Max Length',        desc: 'Last name exactly 50 characters',                                              priority: 'Low',    type: 'Boundary',   expected: 'Field accepted',                                         status: 'Draft' },
+    { scenario: 'Welcome Email Delivery',      desc: 'Verify welcome email sent on successful registration',                          priority: 'Medium', type: 'Functional', expected: 'Email delivered with correct user name and login link',   status: 'Ready' },
+  ],
+  'payment-gateway': [
+    { scenario: 'Visa Card Payment Success',    desc: 'Process valid Visa card transaction',                                          priority: 'High',   type: 'Functional', expected: 'Transaction approved; receipt generated',                status: 'Ready' },
+    { scenario: 'Luhn Validation Pass',         desc: 'Valid card number passes Luhn algorithm check',                               priority: 'High',   type: 'Functional', expected: 'Card number accepted for processing',                     status: 'Ready' },
+    { scenario: 'Luhn Validation Fail',         desc: 'Card number fails Luhn checksum',                                             priority: 'High',   type: 'Negative',   expected: 'Error: "Invalid card number"',                            status: 'Ready' },
+    { scenario: 'Expired Card',                 desc: 'Submit payment with card expiry in past month',                               priority: 'High',   type: 'Negative',   expected: 'Error code: expired_card; transaction declined',          status: 'Ready' },
+    { scenario: 'Invalid CVV — Visa',           desc: 'Submit 2-digit CVV for Visa card',                                            priority: 'High',   type: 'Boundary',   expected: 'Error: "CVV must be 3 digits"',                           status: 'Ready' },
+    { scenario: 'Valid CVV — Amex',             desc: 'Submit 4-digit CVV for Amex card',                                            priority: 'High',   type: 'Boundary',   expected: 'CVV accepted; transaction proceeds',                      status: 'Ready' },
+    { scenario: 'Invalid CVV — Amex',           desc: 'Submit 3-digit CVV for Amex card',                                            priority: 'High',   type: 'Negative',   expected: 'Error: "Amex CVV must be 4 digits"',                      status: 'Ready' },
+    { scenario: 'Amount ≤ $5000 — No Extra Auth',desc:'Process transaction exactly at $5000',                                        priority: 'Medium', type: 'Boundary',   expected: 'Transaction processed without additional verification',    status: 'Ready' },
+    { scenario: 'Amount > $5000 — Extra Auth',  desc: 'Process transaction at $5001',                                                priority: 'High',   type: 'Boundary',   expected: 'Additional verification step triggered',                  status: 'Ready' },
+    { scenario: 'Insufficient Funds',           desc: 'Card declined due to insufficient funds',                                     priority: 'High',   type: 'Negative',   expected: 'Error code: insufficient_funds; transaction declined',    status: 'Ready' },
+    { scenario: 'Unsupported Card Type',        desc: 'Submit payment with unsupported card brand',                                   priority: 'Medium', type: 'Negative',   expected: 'Error: "Card type not accepted"',                         status: 'Ready' },
+    { scenario: 'Plain-Text Card Data Check',   desc: 'Verify card data is never stored unencrypted in DB',                          priority: 'High',   type: 'Functional', expected: 'Card data encrypted; audit log shows no plain-text entry', status: 'Review'},
+    { scenario: 'Duplicate Transaction Check',  desc: 'Submit same payment twice within 60 seconds',                                  priority: 'High',   type: 'Negative',   expected: 'Second transaction flagged as duplicate; not charged again',status:'Ready' },
+    { scenario: 'Discover Card Accepted',       desc: 'Complete transaction with Discover card',                                     priority: 'Medium', type: 'Functional', expected: 'Transaction approved',                                   status: 'Ready' },
+    { scenario: 'Network Timeout Handling',     desc: 'Gateway times out during authorization',                                       priority: 'Medium', type: 'Negative',   expected: 'Error: "Payment timed out"; no charge applied',           status: 'Review'},
+  ],
+  '_generic': [
+    { scenario: 'Happy Path — Valid Input',     desc: 'Process the main workflow with all valid inputs',                              priority: 'High',   type: 'Functional', expected: 'System completes operation successfully',                 status: 'Ready' },
+    { scenario: 'Missing Required Field',       desc: 'Submit request with a required field left blank',                             priority: 'High',   type: 'Negative',   expected: 'Validation error: required field highlighted',            status: 'Ready' },
+    { scenario: 'Minimum Boundary Value',       desc: 'Input the minimum allowed value for a numeric field',                         priority: 'Medium', type: 'Boundary',   expected: 'Value accepted and processed correctly',                  status: 'Ready' },
+    { scenario: 'Below Minimum Boundary',       desc: 'Input one unit below the minimum allowed value',                             priority: 'High',   type: 'Boundary',   expected: 'Error: value is below the allowed minimum',               status: 'Ready' },
+    { scenario: 'Maximum Boundary Value',       desc: 'Input the maximum allowed value for a numeric field',                         priority: 'Medium', type: 'Boundary',   expected: 'Value accepted and processed correctly',                  status: 'Ready' },
+    { scenario: 'Exceeds Maximum Boundary',     desc: 'Input one unit above the maximum allowed value',                             priority: 'High',   type: 'Boundary',   expected: 'Error: value exceeds the allowed maximum',                status: 'Ready' },
+    { scenario: 'Invalid Data Type',            desc: 'Input alphabetic characters in a numeric-only field',                         priority: 'Medium', type: 'Negative',   expected: 'Validation error: numeric input required',                status: 'Ready' },
+    { scenario: 'Special Characters Input',     desc: 'Input special characters where not permitted',                                priority: 'Medium', type: 'Negative',   expected: 'Input sanitized or error shown',                          status: 'Review'},
+    { scenario: 'Concurrent Users',             desc: 'Two users perform the same operation simultaneously',                         priority: 'Low',    type: 'Functional', expected: 'Both operations complete without data conflict',          status: 'Draft' },
+    { scenario: 'Unauthorized Role Access',     desc: 'User attempts to access resource without required role',                      priority: 'High',   type: 'Negative',   expected: 'HTTP 403 Forbidden or access denied message',             status: 'Ready' },
+    { scenario: 'Session Timeout',              desc: 'User is inactive for the configured timeout period',                          priority: 'Medium', type: 'Boundary',   expected: 'Session expired; redirected to login',                    status: 'Ready' },
+    { scenario: 'Large Input Payload',          desc: 'Submit maximum allowed characters in text fields',                            priority: 'Low',    type: 'Boundary',   expected: 'Data saved correctly without truncation',                 status: 'Draft' },
+  ]
+};
+
+/* ----------------------------------------------------------------
+   GHERKIN GENERATION ENGINE
+   ---------------------------------------------------------------- */
+function buildGherkin(templateKey, testCases) {
+  const featureNames = {
+    'ecommerce':       'E-Commerce Checkout Flow',
+    'banking':         'Banking Portal Login & Authentication',
+    'inventory':       'Inventory Management REST API',
+    'user-reg':        'User Registration Workflow',
+    'payment-gateway': 'Payment Gateway Processing',
+    '_generic':        'Application Feature Specification'
+  };
+  const featureName = featureNames[templateKey] || 'Application Feature';
+
+  let lines = [];
+  lines.push(`@automated @qualigen`);
+  lines.push(`Feature: ${featureName}`);
+  lines.push(`  As a QA engineer`);
+  lines.push(`  I want comprehensive test coverage for ${featureName}`);
+  lines.push(`  So that quality is assured before each release`);
+  lines.push('');
+
+  /* Generate scenarios from first 6 test cases to keep output readable */
+  const subset = testCases.slice(0, 6);
+  subset.forEach((tc, i) => {
+    const tag = tc.type === 'Negative' ? '@negative' : tc.type === 'Boundary' ? '@boundary' : '@functional';
+    const pTag = `@${tc.priority.toLowerCase()}`;
+    lines.push(`  ${tag} ${pTag} @${tc.id}`);
+    lines.push(`  Scenario: ${tc.scenario}`);
+    /* Auto-generate Given/When/Then from description + expected */
+    lines.push(`    Given the system is in a valid pre-condition state`);
+    lines.push(`    When  ${tc.desc.replace(/^[A-Z]/, c => c.toLowerCase())}`);
+    lines.push(`    Then  ${tc.expected}`);
+    if (i < subset.length - 1) lines.push('');
+  });
+
+  /* Render as colour-coded HTML spans */
+  return lines.map(line => {
+    const escaped = line
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    if (escaped.startsWith('@'))
+      return `<span class="gherkin-tag">${escaped}</span>`;
+    if (/^\s*(Feature:|Scenario:)/.test(escaped))
+      return `<span class="gherkin-keyword">${escaped}</span>`;
+    if (/^\s*(Given|When|Then|And|But)\s/.test(escaped))
+      return `<span class="gherkin-step">${escaped}</span>`;
+    if (escaped.startsWith('#'))
+      return `<span class="gherkin-comment">${escaped}</span>`;
+    return escaped;
+  }).join('\n');
+}
+
+/* ----------------------------------------------------------------
+   STATE
+   ---------------------------------------------------------------- */
+let allTestCases    = [];   // full generated data
+let filteredCases   = [];   // after filter/search
+let sortState       = { col: null, dir: 'asc' };
+let currentTemplate = '_generic';
+let isGenerating    = false;
+
+/* ----------------------------------------------------------------
+   DOM REFERENCES
+   All queries are deferred inside init() so the DOM is guaranteed
+   to be fully parsed regardless of script placement.
+   ---------------------------------------------------------------- */
+let reqInput, charHint, btnGenerate, aiStatusBox, progressFill, progressWrap;
+let gherkinOutput, gherkinPholder, tbody, tcCountBadge;
+let searchInput, filterPriority, filterType;
+let btnCsv, btnGherkin, btnPdf, btnClear;
+let mTotal, mCoverage, mPositive, mNegative, mBoundary, mTotalDelta, mCoverageDelta;
+let STEPS, STEP_COUNT;
+
+/* ----------------------------------------------------------------
+   INIT — runs after DOM is ready, wires all queries + listeners
+   ---------------------------------------------------------------- */
+function init() {
+  /* -- Query all DOM nodes ---------------------------------------- */
+  reqInput       = document.getElementById('req-input');
+  charHint       = document.getElementById('char-hint');
+  btnGenerate    = document.getElementById('btn-generate');
+  aiStatusBox    = document.getElementById('ai-status-box');
+  progressFill   = document.getElementById('progress-bar-fill');
+  progressWrap   = document.getElementById('progress-bar-wrap');
+  gherkinOutput  = document.getElementById('gherkin-output');
+  gherkinPholder = document.getElementById('gherkin-placeholder');
+  tbody          = document.getElementById('test-tbody');
+  tcCountBadge   = document.getElementById('tc-count-badge');
+  searchInput    = document.getElementById('search-input');
+  filterPriority = document.getElementById('filter-priority');
+  filterType     = document.getElementById('filter-type');
+  btnCsv         = document.getElementById('btn-csv');
+  btnGherkin     = document.getElementById('btn-gherkin');
+  btnPdf         = document.getElementById('btn-pdf');
+  btnClear       = document.getElementById('btn-clear');
+  mTotal         = document.getElementById('m-total');
+  mCoverage      = document.getElementById('m-coverage');
+  mPositive      = document.getElementById('m-positive');
+  mNegative      = document.getElementById('m-negative');
+  mBoundary      = document.getElementById('m-boundary');
+  mTotalDelta    = document.getElementById('m-total-delta');
+  mCoverageDelta = document.getElementById('m-coverage-delta');
+
+  /* Step elements (inside ai-status-box, guaranteed present now) */
+  STEPS      = document.querySelectorAll('.step-item[data-step]');
+  STEP_COUNT = STEPS.length;
+
+  /* Guard: abort silently if any critical element is missing */
+  if (!reqInput || !btnGenerate || !tbody) {
+    console.error('QualiGen AI: critical DOM element(s) not found — aborting init.');
+    return;
+  }
+
+  /* -- CHARACTER COUNTER ------------------------------------------ */
+  reqInput.addEventListener('input', updateCharCount);
+
+  /* -- TEMPLATE CHIPS --------------------------------------------- */
+  document.querySelectorAll('.chip[data-template]').forEach(chip => {
+    chip.addEventListener('click', () => {
+      document.querySelectorAll('.chip[data-template]').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      currentTemplate = chip.dataset.template;
+      reqInput.value  = TEMPLATES[currentTemplate] || '';
+      updateCharCount();   /* update counter immediately */
+    });
+    /* Keyboard activation */
+    chip.setAttribute('tabindex', '0');
+    chip.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); chip.click(); }
+    });
+  });
+
+  /* -- GENERATE BUTTON -------------------------------------------- */
+  btnGenerate.addEventListener('click', handleGenerate);
+
+  /* -- FILTER & SEARCH -------------------------------------------- */
+  searchInput.addEventListener('input',     applyFilters);
+  filterPriority.addEventListener('change', applyFilters);
+  filterType.addEventListener('change',     applyFilters);
+
+  /* -- COLUMN SORT HEADERS ---------------------------------------- */
+  document.querySelectorAll('thead th[data-col]').forEach(th => {
+    th.addEventListener('click', () => {
+      const col = th.dataset.col;
+      sortState.dir = sortState.col === col
+        ? (sortState.dir === 'asc' ? 'desc' : 'asc')
+        : 'asc';
+      sortState.col = col;
+      sortCases(col, true);
+      document.querySelectorAll('thead th[data-col]').forEach(h => {
+        h.classList.remove('sort-asc', 'sort-desc');
+        h.setAttribute('aria-sort', 'none');
+      });
+      th.classList.add(sortState.dir === 'asc' ? 'sort-asc' : 'sort-desc');
+      th.setAttribute('aria-sort', sortState.dir === 'asc' ? 'ascending' : 'descending');
+    });
+    th.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); th.click(); }
+    });
+  });
+
+  /* -- EXPORT BUTTONS --------------------------------------------- */
+  btnCsv.addEventListener('click',     handleExportCsv);
+  btnGherkin.addEventListener('click', handleCopyGherkin);
+  btnPdf.addEventListener('click',     handleExportPdf);
+  btnClear.addEventListener('click',   handleClear);
+
+  /* -- READY TOAST ------------------------------------------------- */
+  showToast('⚡ QualiGen AI ready — select a template or paste your requirement!', 'info');
+}
+
+/* Helper: update the live char counter */
+function updateCharCount() {
+  if (!reqInput || !charHint) return;
+  const len = reqInput.value.length;
+  charHint.textContent = len.toLocaleString() + ' chars';
+  charHint.style.color = len > 3000 ? 'var(--rose)' : 'var(--text-muted)';
+}
+
+/* ----------------------------------------------------------------
+   AI GENERATION SIMULATION
+   ---------------------------------------------------------------- */
+
+function resetSteps() {
+  STEPS.forEach(s => { s.classList.remove('active', 'done'); });
+  progressFill.style.width = '0%';
+  progressWrap.setAttribute('aria-valuenow', '0');
+}
+
+function activateStep(idx) {
+  STEPS.forEach((s, i) => {
+    if (i < idx)        { s.classList.remove('active'); s.classList.add('done'); }
+    else if (i === idx) { s.classList.add('active');    s.classList.remove('done'); }
+    else                { s.classList.remove('active', 'done'); }
+  });
+  const pct = Math.round(((idx + 1) / STEP_COUNT) * 100);
+  progressFill.style.width = pct + '%';
+  progressWrap.setAttribute('aria-valuenow', String(pct));
+}
+
+function allStepsDone() {
+  STEPS.forEach(s => { s.classList.remove('active'); s.classList.add('done'); });
+  progressFill.style.width = '100%';
+  progressWrap.setAttribute('aria-valuenow', '100');
+}
+
+function sleep(ms) {
+  return new Promise(function(resolve) { setTimeout(resolve, ms); });
+}
+
+async function handleGenerate() {
+  if (isGenerating) return;
+  const req = (reqInput.value || '').trim();
+  if (!req) {
+    showToast('Please enter or select a requirement before generating.', 'warning');
+    reqInput.focus();
+    return;
+  }
+
+  isGenerating = true;
+  btnGenerate.disabled = true;
+  btnGenerate.innerHTML = '<span>⏳</span> Generating…';
+  aiStatusBox.classList.add('visible');
+  resetSteps();
+
+  /* Determine which test set to use */
+  const key = currentTemplate && TEST_CASE_SETS[currentTemplate] ? currentTemplate : '_generic';
+
+  /* Step animation delays (ms) */
+  const delays = [400, 500, 550, 600, 500, 450];
+
+  for (let i = 0; i < STEP_COUNT; i++) {
+    activateStep(i);
+    await sleep(delays[i]);
+  }
+  allStepsDone();
+  await sleep(300);
+
+  /* Build test case data */
+  const baseSet = TEST_CASE_SETS[key];
+  allTestCases = baseSet.map((tc, idx) => ({
+    id: `TC-${String(idx + 1).padStart(3,'0')}`,
+    ...tc
+  }));
+
+  /* Render */
+  filteredCases = [...allTestCases];
+  renderTable(filteredCases);
+  updateMetrics(allTestCases);
+  renderGherkin(key, allTestCases);
+  enableControls(true);
+
+  /* Hide status box */
+  await sleep(600);
+  aiStatusBox.classList.remove('visible');
+
+  /* Reset button */
+  btnGenerate.disabled = false;
+  btnGenerate.innerHTML = '<span>✅</span> Regenerate Test Cases';
+  isGenerating = false;
+
+  showToast(`✅ ${allTestCases.length} test cases generated successfully!`, 'success');
+  document.querySelector('.output-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+/* ----------------------------------------------------------------
+   RENDER TABLE
+   ---------------------------------------------------------------- */
+function renderTable(cases) {
+  /* Remove any existing empty-state row (look it up fresh each call) */
+  var existingEmpty = document.getElementById('empty-row');
+  if (existingEmpty) existingEmpty.remove();
+
+  /* Clear all rows */
+  tbody.innerHTML = '';
+
+  if (cases.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="7">
+      <div class="table-empty" role="status">
+        <div class="table-empty-icon" aria-hidden="true">🔍</div>
+        <p>No test cases match your current filters. Try adjusting the search or filter options.</p>
+      </div>
+    </td></tr>`;
+    tcCountBadge.textContent = '0 cases';
+    return;
+  }
+
+  tcCountBadge.textContent = `${cases.length} case${cases.length !== 1 ? 's' : ''}`;
+
+  const frag = document.createDocumentFragment();
+  cases.forEach(tc => {
+    const tr = document.createElement('tr');
+    tr.setAttribute('role','row');
+    tr.innerHTML = `
+      <td class="td-id">${escHtml(tc.id)}</td>
+      <td class="td-scenario">${escHtml(tc.scenario)}</td>
+      <td class="td-desc">${escHtml(tc.desc)}</td>
+      <td>${prioBadge(tc.priority)}</td>
+      <td>${typeBadge(tc.type)}</td>
+      <td style="font-size:12.5px;color:var(--text-secondary);">${escHtml(tc.expected)}</td>
+      <td>${statusBadge(tc.status)}</td>
+    `;
+    frag.appendChild(tr);
+  });
+  tbody.appendChild(frag);
+}
+
+function escHtml(str) {
+  return String(str)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;');
+}
+
+function prioBadge(p) {
+  const cls = { High:'prio-high', Medium:'prio-medium', Low:'prio-low' }[p] || 'prio-low';
+  const icon = { High:'🔴', Medium:'🟡', Low:'🟢' }[p] || '⚪';
+  return `<span class="prio-badge ${cls}">${icon} ${escHtml(p)}</span>`;
+}
+
+function typeBadge(t) {
+  const cls = { Functional:'type-functional', Negative:'type-negative', Boundary:'type-boundary' }[t] || 'type-functional';
+  return `<span class="type-badge ${cls}">${escHtml(t)}</span>`;
+}
+
+function statusBadge(s) {
+  const cls = { Ready:'status-ready', Review:'status-review', Draft:'status-draft' }[s] || 'status-draft';
+  const icon = { Ready:'✓', Review:'◑', Draft:'○' }[s] || '○';
+  return `<span class="status-badge ${cls}">${icon} ${escHtml(s)}</span>`;
+}
+
+/* ----------------------------------------------------------------
+   METRICS UPDATE
+   ---------------------------------------------------------------- */
+function updateMetrics(cases) {
+  const total    = cases.length;
+  const positive = cases.filter(c => c.type === 'Functional').length;
+  const negative = cases.filter(c => c.type === 'Negative').length;
+  const boundary = cases.filter(c => c.type === 'Boundary').length;
+  const coverage = Math.min(100, Math.round(60 + (total * 2.5)));
+
+  /* Animated counter */
+  animateCounter(mTotal,    0, total,    1200);
+  animateCounter(mPositive, 0, positive, 1200);
+  animateCounter(mNegative, 0, negative, 1200);
+  animateCounter(mBoundary, 0, boundary, 1200);
+
+  /* Coverage percentage */
+  let start = 0;
+  const dur = 1400;
+  const startTime = performance.now();
+  function animCov(now) {
+    const elapsed = now - startTime;
+    const progress = Math.min(elapsed / dur, 1);
+    const val = Math.round(progress * coverage);
+    mCoverage.textContent = `${val}%`;
+    if (progress < 1) requestAnimationFrame(animCov);
+    else mCoverage.textContent = `${coverage}%`;
+  }
+  requestAnimationFrame(animCov);
+
+  mTotalDelta.textContent   = `${positive} positive · ${negative} negative · ${boundary} boundary`;
+  mCoverageDelta.textContent = `Estimated from ${total} test cases`;
+}
+
+function animateCounter(el, from, to, duration) {
+  const startTime = performance.now();
+  function step(now) {
+    const elapsed  = now - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    el.textContent = Math.round(from + (to - from) * easeOut(progress));
+    if (progress < 1) requestAnimationFrame(step);
+    else el.textContent = to;
+  }
+  requestAnimationFrame(step);
+}
+
+function easeOut(t) { return 1 - Math.pow(1 - t, 3); }
+
+/* ----------------------------------------------------------------
+   GHERKIN RENDER
+   ---------------------------------------------------------------- */
+function renderGherkin(key, cases) {
+  const html = buildGherkin(key, cases);
+  gherkinOutput.innerHTML = html;
+  gherkinOutput.classList.add('visible');
+  gherkinPholder.style.display = 'none';
+}
+
+/* ----------------------------------------------------------------
+   FILTER & SEARCH
+   ---------------------------------------------------------------- */
+function applyFilters() {
+  const q    = searchInput.value.trim().toLowerCase();
+  const prio = filterPriority.value;
+  const type = filterType.value;
+
+  filteredCases = allTestCases.filter(tc => {
+    const matchQ    = !q || [tc.id, tc.scenario, tc.desc, tc.expected].join(' ').toLowerCase().includes(q);
+    const matchPrio = !prio || tc.priority === prio;
+    const matchType = !type || tc.type    === type;
+    return matchQ && matchPrio && matchType;
+  });
+
+  /* Re-apply sort */
+  if (sortState.col) sortCases(sortState.col, false);
+  renderTable(filteredCases);
+}
+
+function sortCases(col, render) {
+  const priMap   = { High: 0, Medium: 1, Low: 2 };
+  const typeMap  = { Functional: 0, Negative: 1, Boundary: 2 };
+  const statMap  = { Ready: 0, Review: 1, Draft: 2 };
+
+  filteredCases.sort((a, b) => {
+    let va, vb;
+    switch(col) {
+      case 'id':       va = a.id;       vb = b.id;       break;
+      case 'scenario': va = a.scenario; vb = b.scenario; break;
+      case 'desc':     va = a.desc;     vb = b.desc;     break;
+      case 'priority': va = priMap[a.priority]  ?? 9; vb = priMap[b.priority]  ?? 9; break;
+      case 'type':     va = typeMap[a.type]      ?? 9; vb = typeMap[b.type]      ?? 9; break;
+      case 'expected': va = a.expected; vb = b.expected; break;
+      case 'status':   va = statMap[a.status]    ?? 9; vb = statMap[b.status]    ?? 9; break;
+      default: return 0;
+    }
+    if (typeof va === 'string') va = va.toLowerCase();
+    if (typeof vb === 'string') vb = vb.toLowerCase();
+    if (va < vb) return sortState.dir === 'asc' ? -1 :  1;
+    if (va > vb) return sortState.dir === 'asc' ?  1 : -1;
+    return 0;
+  });
+  if (render) renderTable(filteredCases);
+}
+
+/* ----------------------------------------------------------------
+   ENABLE / DISABLE CONTROLS
+   ---------------------------------------------------------------- */
+function enableControls(enable) {
+  btnCsv.disabled         = !enable;
+  btnGherkin.disabled     = !enable;
+  btnPdf.disabled         = !enable;
+  btnClear.disabled       = !enable;
+  searchInput.disabled    = !enable;
+  filterPriority.disabled = !enable;
+  filterType.disabled     = !enable;
+}
+
+/* ----------------------------------------------------------------
+   EXPORT: CSV
+   ---------------------------------------------------------------- */
+function handleExportCsv() {
+  if (!allTestCases.length) return;
+  const headers = ['Test ID','Scenario','Description','Priority','Type','Expected Result','Status'];
+  const rows = allTestCases.map(function(tc) {
+    return [tc.id, tc.scenario, tc.desc, tc.priority, tc.type, tc.expected, tc.status]
+      .map(function(v) { return '"' + String(v).replace(/"/g, '""') + '"'; });
+  });
+  const csv = [headers.join(',')].concat(rows.map(function(r) { return r.join(','); })).join('\r\n');
+  downloadBlob(csv, 'qualigen-test-cases.csv', 'text/csv;charset=utf-8;');
+  showToast('CSV exported successfully!', 'success');
+}
+
+/* ----------------------------------------------------------------
+   EXPORT: Gherkin Copy
+   ---------------------------------------------------------------- */
+function handleCopyGherkin() {
+  if (!allTestCases.length) return;
+  const plainText = gherkinOutput.textContent || gherkinOutput.innerText || '';
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(plainText)
+      .then(function() { showToast('Gherkin syntax copied to clipboard!', 'success'); })
+      .catch(function() { fallbackCopy(plainText); });
+  } else {
+    fallbackCopy(plainText);
+  }
+}
+
+function fallbackCopy(text) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.cssText = 'position:fixed;top:-9999px;left:-9999px;opacity:0';
+  document.body.appendChild(ta);
+  ta.focus(); ta.select();
+  try {
+    document.execCommand('copy');
+    showToast('🥒 Gherkin syntax copied to clipboard!', 'success');
+  } catch (e) {
+    showToast('⚠️ Copy failed — please copy manually.', 'warning');
+  }
+  document.body.removeChild(ta);
+}
+
+/* ----------------------------------------------------------------
+   EXPORT: PDF Report
+   ---------------------------------------------------------------- */
+function handleExportPdf() {
+  if (!allTestCases.length) return;
+  var rowsHtml = allTestCases.map(function(tc) {
+    return '<tr>'
+      + '<td>' + escHtmlBasic(tc.id)       + '</td>'
+      + '<td>' + escHtmlBasic(tc.scenario)  + '</td>'
+      + '<td>' + escHtmlBasic(tc.desc)      + '</td>'
+      + '<td>' + escHtmlBasic(tc.priority)  + '</td>'
+      + '<td>' + escHtmlBasic(tc.type)      + '</td>'
+      + '<td>' + escHtmlBasic(tc.expected)  + '</td>'
+      + '<td>' + escHtmlBasic(tc.status)    + '</td>'
+      + '</tr>';
+  }).join('');
+  /* Note: closing script/style tags inside template literals are safe
+     here because they are built by concatenation, not literal text. */
+  var reportHtml = '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">'
+    + '<title>QualiGen AI \u2014 Test Report<\/title>'
+    + '<style>'
+    + 'body{font-family:Arial,sans-serif;font-size:11px;color:#1a1a1a;padding:24px;}'
+    + 'h1{font-size:18px;margin-bottom:4px;color:#3b2bdb;}'
+    + '.meta{font-size:10px;color:#666;margin-bottom:16px;}'
+    + 'table{width:100%;border-collapse:collapse;}'
+    + 'th{background:#3b2bdb;color:#fff;padding:7px 8px;text-align:left;font-size:10px;}'
+    + 'td{padding:6px 8px;border-bottom:1px solid #e0e0e0;vertical-align:top;}'
+    + 'tr:nth-child(even) td{background:#f7f7ff;}'
+    + '<\/style><\/head><body>'
+    + '<h1>QualiGen AI \u2014 Test Case Report<\/h1>'
+    + '<div class="meta">Generated: ' + new Date().toLocaleString() + ' &nbsp;|&nbsp; Total: ' + allTestCases.length + ' cases<\/div>'
+    + '<table><thead><tr>'
+    + '<th>Test ID<\/th><th>Scenario<\/th><th>Description<\/th>'
+    + '<th>Priority<\/th><th>Type<\/th><th>Expected Result<\/th><th>Status<\/th>'
+    + '<\/tr><\/thead><tbody>' + rowsHtml + '<\/tbody><\/table>'
+    + '<\/body><\/html>';
+  downloadBlob(reportHtml, 'qualigen-test-report.html', 'text/html;charset=utf-8;');
+  showToast('PDF Report downloaded — open the HTML file and print to PDF!', 'info');
+}
+
+function escHtmlBasic(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+/* ----------------------------------------------------------------
+   CLEAR ALL
+   ---------------------------------------------------------------- */
+function handleClear() {
+  allTestCases  = [];
+  filteredCases = [];
+  sortState     = { col: null, dir: 'asc' };
+
+  /* Reset table */
+  tbody.innerHTML = '';
+  const tr = document.createElement('tr');
+  tr.id = 'empty-row';
+  tr.innerHTML = `<td colspan="7">
+    <div class="table-empty" role="status">
+      <div class="table-empty-icon" aria-hidden="true">🧪</div>
+      <p>No test cases generated yet. Paste a requirement and click <strong>Generate Test Cases with AI</strong> to begin.</p>
+    </div>
+  </td>`;
+  tbody.appendChild(tr);
+  tcCountBadge.textContent = '0 cases';
+
+  /* Reset metrics */
+  [mTotal, mPositive, mNegative, mBoundary].forEach(el => el.textContent = '0');
+  mCoverage.textContent   = '0%';
+  mTotalDelta.textContent = 'Generate to populate';
+  mCoverageDelta.textContent = 'Requirement coverage';
+
+  /* Reset gherkin */
+  gherkinOutput.innerHTML = '';
+  gherkinOutput.classList.remove('visible');
+  gherkinPholder.style.display = '';
+
+  /* Reset controls */
+  enableControls(false);
+
+  /* Reset sort icons */
+  document.querySelectorAll('thead th').forEach(h => {
+    h.classList.remove('sort-asc','sort-desc');
+    h.setAttribute('aria-sort','none');
+  });
+
+  /* Reset generate button */
+  btnGenerate.innerHTML = '<span aria-hidden="true">⚡</span> Generate Test Cases with AI';
+
+  showToast('🗑 Workspace cleared.', 'info');
+}
+
+/* ----------------------------------------------------------------
+   DOWNLOAD HELPER
+   ---------------------------------------------------------------- */
+function downloadBlob(content, filename, mimeType) {
+  const blob = new Blob([content], { type: mimeType });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = filename;
+  a.style.display = 'none';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => { URL.revokeObjectURL(url); document.body.removeChild(a); }, 500);
+}
+
+/* ----------------------------------------------------------------
+   TOAST NOTIFICATIONS
+   ---------------------------------------------------------------- */
+function showToast(message, type = 'info') {
+  const container = document.getElementById('toast-container');
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.setAttribute('role','alert');
+  toast.setAttribute('aria-live','assertive');
+  toast.innerHTML = `<span class="toast-icon" aria-hidden="true">${type === 'success' ? '✅' : type === 'warning' ? '⚠️' : 'ℹ️'}</span> ${escHtmlBasic(message)}`;
+  container.appendChild(toast);
+  /* Auto-remove */
+  setTimeout(() => {
+    toast.style.transition = 'opacity .3s ease, transform .3s ease';
+    toast.style.opacity    = '0';
+    toast.style.transform  = 'translateY(10px)';
+    setTimeout(() => toast.remove(), 320);
+  }, 3800);
+}
+
+/* ----------------------------------------------------------------
+   BOOT — kick off init() once DOM is ready.
+   Works whether the script runs before or after DOMContentLoaded.
+   ---------------------------------------------------------------- */
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', init);
+} else {
+  /* readyState is 'interactive' or 'complete' — DOM already parsed */
+  init();
+}
+</script>
+
+</body>
+</html>
